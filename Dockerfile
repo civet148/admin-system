@@ -27,11 +27,7 @@ ENV SRC_DIR /admin-system
 RUN set -x \
   && cd /tmp
 
-RUN go env -w GOPROXY=https://goproxy.cn
-RUN go env -w GOPRIVATE="git.storeros.com"
-RUN go env -w GONOPROXY="git.storeros.com"
-RUN go env -w GONOSUMDB="git.storeros.com"
-RUN go env -w GOINSECURE="git.storeros.com"
+RUN go env -w GOPROXY=https://goproxy.io
 
 COPY . $SRC_DIR
 RUN cd $SRC_DIR && export GIT_SSL_NO_VERIFY=true && git config --global http.sslVerify "false" && make

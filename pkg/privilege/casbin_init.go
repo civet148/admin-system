@@ -5,12 +5,21 @@ import (
 	"github.com/casbin/casbin/v2/model"
 	xormadapter "github.com/casbin/xorm-adapter/v2"
 	"github.com/civet148/log"
+	"github.com/civet148/sqlca/v2"
 	_ "github.com/go-sql-driver/mysql"
+	"strings"
 )
 
 var CasRule *casbin.Enforcer
 
 func InitCasbin(strDSN string) {
+	var err error
+	if strings.HasPrefix(strDSN, "mysql://") {
+		strDSN, err = sqlca.Url2MySql(strDSN)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
 	// 要使用自己定义的数据库oss-manager,最后的true很重要.默认为false,使用缺省的数据库名casbin,不存在则创建，表不需要自己创建默认为casbin_rule
 	a, err := xormadapter.NewAdapter("mysql", strDSN, true)
 	if err != nil {

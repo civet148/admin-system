@@ -8,7 +8,7 @@ require (
 	github.com/casbin/xorm-adapter/v2 v2.4.0
 	github.com/civet148/gotools v1.4.1
 	github.com/civet148/log v1.4.4
-	github.com/civet148/sqlca/v2 v2.7.2
+	github.com/civet148/sqlca/v2 v2.7.3
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.12.0
 	github.com/gin-gonic/gin v1.5.0
