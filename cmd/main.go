@@ -23,7 +23,8 @@ var (
 )
 
 const (
-	CMD_NAME_RUN = "run"
+	CMD_NAME_RUN   = "run"
+	CMD_NAME_START = "start"
 )
 
 const (
@@ -87,6 +88,7 @@ var runCmd = &cli.Command{
 	Name:      CMD_NAME_RUN,
 	Usage:     "run as a web service",
 	ArgsUsage: "[listen address]",
+	Aliases:   []string{CMD_NAME_START},
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  CMD_FLAG_NAME_DEBUG,
