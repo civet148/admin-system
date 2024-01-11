@@ -57,25 +57,3 @@ type PlatformSysRole struct {
 	CreatedTime string   `json:"created_time" db:"created_time" sqlca:"readonly" bson:"created_time"` //创建时间
 	Role        []string `json:"role"`                                                                //角色权限
 }
-
-type PlatformAccount struct {
-	UserId              int32  `json:"user_id" db:"user_id" bson:"user_id"`                                           // 用户ID(自增)
-	Email               string `json:"email" db:"email" bson:"email"`                                                 // 邮箱
-	TotalRequest        int32  `json:"total_request" db:"total_request" bson:"total_request"`                         // 总请求数
-	MaximumRequestsDays int32  `json:"maximum_requests_days" db:"maximum_requests_days" bson:"maximum_requests_days"` // 该用户近7天内每天的最大请求数
-	Item                int32  `json:"item" db:"item" bson:"item"`                                                    // 项目数
-	State               int32  `json:"state" db:"state" bson:"state"`                                                 // 是否已启用(1=已启用 2=已禁用)
-	CreatedTime         string `json:"created_time" db:"created_time" sqlca:"readonly" bson:"created_time"`           //创建时间
-}
-
-type ProjectStatistic struct {
-	RequestCount int32  `json:"request_count"` //请求次数
-	RequestTime  string `json:"request_time"`  //请求时间
-}
-
-type MonitorStatistic struct {
-	ProjectType   int32 `json:"project_type"`   //项目类型（区块链网络类型）
-	RequestTotal  int32 `json:"request_total"`  //总请求次数
-	Projects      int32 `json:"projects"`       //项目数
-	AnomaliesWeek int32 `json:"anomalies_week"` //每周超过agent限制次数
-}
