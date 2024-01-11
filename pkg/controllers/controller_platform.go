@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (m *Controller) PlatformLoginV1(c *gin.Context) { //user login
+func (m *Controller) PlatformLogin(c *gin.Context) { //user login
 	var err error
 	var req proto.PlatformLoginReq
 
@@ -67,12 +67,12 @@ func (m *Controller) PlatformLoginV1(c *gin.Context) { //user login
 	m.OK(c, &resp, 1, 1)
 }
 
-func (m *Controller) PlatformLogoutV1(c *gin.Context) { //user logout
+func (m *Controller) PlatformLogout(c *gin.Context) { //user logout
 	sessions.RemoveContext(c)
 	m.OK(c, nil, 0, 0)
 }
 
-func (m *Controller) PlatformCheckExistV1(c *gin.Context) { //check user account or email exist
+func (m *Controller) PlatformCheckExist(c *gin.Context) { //check user account or email exist
 	var err error
 	var req proto.PlatformCheckExistReq
 
@@ -95,7 +95,7 @@ func (m *Controller) PlatformCheckExistV1(c *gin.Context) { //check user account
 	m.OK(c, &proto.PlatformCheckExistResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformListUserV1(c *gin.Context) { //list platform users
+func (m *Controller) PlatformListUser(c *gin.Context) { //list platform users
 
 	var err error
 	var req proto.PlatformListUserReq
@@ -120,7 +120,7 @@ func (m *Controller) PlatformListUserV1(c *gin.Context) { //list platform users
 	m.OK(c, proto.PlatformListUserResp{Users: users}, len(users), total)
 }
 
-func (m *Controller) PlatformCreateUserV1(c *gin.Context) { //create user account
+func (m *Controller) PlatformCreateUser(c *gin.Context) { //create user account
 
 	var err error
 	var req proto.PlatformCreateUserReq
@@ -164,7 +164,7 @@ func (m *Controller) PlatformCreateUserV1(c *gin.Context) { //create user accoun
 	m.OK(c, &resp, 1, 1)
 }
 
-func (m *Controller) PlatformEditUserV1(c *gin.Context) { //edit user information
+func (m *Controller) PlatformEditUser(c *gin.Context) { //edit user information
 	var err error
 	var req proto.PlatformEditUserReq
 
@@ -187,7 +187,7 @@ func (m *Controller) PlatformEditUserV1(c *gin.Context) { //edit user informatio
 	m.OK(c, &proto.PlatformEditUserResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformEnableUserV1(c *gin.Context) {
+func (m *Controller) PlatformEnableUser(c *gin.Context) {
 	var err error
 	var req proto.PlatformEnableUserReq
 
@@ -210,7 +210,7 @@ func (m *Controller) PlatformEnableUserV1(c *gin.Context) {
 	m.OK(c, r, 1, 1)
 }
 
-func (m *Controller) PlatformDisableUserV1(c *gin.Context) {
+func (m *Controller) PlatformDisableUser(c *gin.Context) {
 	var err error
 	var req proto.PlatformDisableUserReq
 
@@ -233,7 +233,7 @@ func (m *Controller) PlatformDisableUserV1(c *gin.Context) {
 	m.OK(c, r, 1, 1)
 }
 
-func (m *Controller) PlatformDeleteUserV1(c *gin.Context) { //delete user account
+func (m *Controller) PlatformDeleteUser(c *gin.Context) { //delete user account
 
 	var err error
 	var req proto.PlatformDeleteUserReq
@@ -262,7 +262,7 @@ func (m *Controller) PlatformDeleteUserV1(c *gin.Context) { //delete user accoun
 	m.OK(c, &proto.PlatformDeleteUserResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformListRoleV1(c *gin.Context) { //list platform roles
+func (m *Controller) PlatformListRole(c *gin.Context) { //list platform roles
 	var err error
 	var req proto.PlatformListRoleReq
 
@@ -285,7 +285,7 @@ func (m *Controller) PlatformListRoleV1(c *gin.Context) { //list platform roles
 	m.OK(c, &proto.PlatformListRoleResp{Roles: roles}, count, total)
 }
 
-func (m *Controller) PlatformCreateRoleV1(c *gin.Context) { //create a custom platform role
+func (m *Controller) PlatformCreateRole(c *gin.Context) { //create a custom platform role
 	var err error
 	var req proto.PlatformCreateRoleReq
 
@@ -307,7 +307,7 @@ func (m *Controller) PlatformCreateRoleV1(c *gin.Context) { //create a custom pl
 	m.OK(c, &proto.PlatformCreateRoleResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformEditRoleV1(c *gin.Context) { //edit custom platform role
+func (m *Controller) PlatformEditRole(c *gin.Context) { //edit custom platform role
 	var err error
 	var req proto.PlatformEditRoleReq
 
@@ -329,7 +329,7 @@ func (m *Controller) PlatformEditRoleV1(c *gin.Context) { //edit custom platform
 	m.OK(c, &proto.PlatformEditRoleResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformDeleteRoleV1(c *gin.Context) { //delete custom platform role
+func (m *Controller) PlatformDeleteRole(c *gin.Context) { //delete custom platform role
 	var err error
 	var req proto.PlatformDeleteRoleReq
 
@@ -351,7 +351,7 @@ func (m *Controller) PlatformDeleteRoleV1(c *gin.Context) { //delete custom plat
 	m.OK(c, &proto.PlatformDeleteRoleResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformAuthRoleV1(c *gin.Context) {
+func (m *Controller) PlatformAuthRole(c *gin.Context) {
 	var err error
 	var req proto.PlatformAuthRoleReq
 
@@ -373,7 +373,7 @@ func (m *Controller) PlatformAuthRoleV1(c *gin.Context) {
 	m.OK(c, &proto.PlatformAuthRoleResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformInquireAuthV1(c *gin.Context) {
+func (m *Controller) PlatformInquireAuth(c *gin.Context) {
 	var err error
 	var req proto.PlatformInquireAuthReq
 
@@ -396,7 +396,7 @@ func (m *Controller) PlatformInquireAuthV1(c *gin.Context) {
 	m.OK(c, &proto.PlatformInquireAuthResp{Privilege: authority}, 1, 1)
 }
 
-func (m *Controller) PlatformPrivilegeLevelV1(c *gin.Context) {
+func (m *Controller) PlatformPrivilegeLevel(c *gin.Context) {
 
 	var err error
 	var req proto.PlatformPrivilegeLevelReq
@@ -421,7 +421,7 @@ func (m *Controller) PlatformPrivilegeLevelV1(c *gin.Context) {
 	m.OK(c, PlatformPrivilegeLevelResp, 1, 1)
 }
 
-func (m *Controller) PlatformResetPasswordV1(c *gin.Context) { //platform administrator reset other user's password
+func (m *Controller) PlatformResetPassword(c *gin.Context) { //platform administrator reset other user's password
 	var err error
 	var req proto.PlatformResetPasswordReq
 
@@ -443,7 +443,7 @@ func (m *Controller) PlatformResetPasswordV1(c *gin.Context) { //platform admini
 	m.OK(c, &proto.PlatformResetPasswordResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformChangePasswordV1(c *gin.Context) { //platform user change password by self
+func (m *Controller) PlatformChangePassword(c *gin.Context) { //platform user change password by self
 	var err error
 	var req proto.PlatformResetPasswordReq
 
@@ -481,7 +481,7 @@ func (m *Controller) PlatformChangePasswordV1(c *gin.Context) { //platform user 
 	m.OK(c, &proto.PlatformResetPasswordResp{}, 1, 1)
 }
 
-func (m *Controller) PlatformListRoleUserV1(c *gin.Context) { //list role user
+func (m *Controller) PlatformListRoleUser(c *gin.Context) { //list role user
 	var err error
 	var req proto.PlatformListRoleUserReq
 
@@ -509,7 +509,7 @@ func (m *Controller) PlatformListRoleUserV1(c *gin.Context) { //list role user
 	}, userCount, total)
 }
 
-func (m *Controller) PlatformRefreshAuthTokenV1(c *gin.Context) {
+func (m *Controller) PlatformRefreshAuthToken(c *gin.Context) {
 	var err error
 	var req proto.PlatformRefreshAuthTokenReq
 
@@ -547,7 +547,7 @@ func (m *Controller) PlatformRefreshAuthTokenV1(c *gin.Context) {
 	m.OK(c, &resp, 1, 1)
 }
 
-func (m *Controller) PlatformListOperLogV1(c *gin.Context) {
+func (m *Controller) PlatformListOperLog(c *gin.Context) {
 	var err error
 	var req proto.PlatformListOperLogReq
 

@@ -43,7 +43,7 @@ var TotalPrivilege = []Privilege{
 func GetKeyMatchPath(auth Privilege) (path string) {
 	switch auth {
 	case UserAccess, UserAdd, UserEdit, UserDelete, UserEnableOrDisable, RoleAccess, RoleAdd, RoleDelete, RoleEdit, RoleAuthority, OperLogAccess, RoleEnableOrDisable:
-		path = routers.GroupRouterPlatform + "/*"
+		path = routers.GroupRouterPlatformV1 + "/*"
 	default:
 		path = ""
 	}
