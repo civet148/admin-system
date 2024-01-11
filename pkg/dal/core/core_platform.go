@@ -153,36 +153,36 @@ func (m *PlatformCore) UserLogin(strUserName, strPassword, strIP string) (user *
 	var err error
 	if user, err = m.userDAO.SelectUserByName(strUserName); err != nil {
 		log.Errorf("select [user name] from user table error [%s]", err.Error())
-		return nil, types.CODE_INVALID_USER_OR_PASSWORD
+		return nil, types.NewBizCode(types.CODE_INVALID_USER_OR_PASSWORD)
 	}
 
 	if user == nil || user.GetId() == 0 {
 		if user, err = m.userDAO.SelectUserByPhone(strUserName); err != nil {
 			log.Errorf("select [phone] from user table error [%s]", err.Error())
-			return nil, types.CODE_INTERNAL_SERVER_ERROR
+			return nil, types.NewBizCode(types.CODE_DATABASE_ERROR)
 		}
 		if user == nil || user.GetId() == 0 {
 			log.Errorf("user name/email [%s] data not found in db", strUserName)
-			return nil, types.CODE_INVALID_USER_OR_PASSWORD
+			return nil, types.NewBizCode(types.CODE_INVALID_USER_OR_PASSWORD)
 		}
 	}
 
 	if user.State == dao.UserState_Disabled {
 		log.Errorf("user name/email [%s] account was disabled", strUserName)
-		return nil, types.CODE_ACCOUNT_BANNED
+		return nil, types.NewBizCode(types.CODE_ACCOUNT_BANNED)
 	}
 
 	user.LoginIp = strIP
 	user.LoginTime = time.Now().Unix()
 	if err = m.userDAO.UpdateByName(user, models.USER_COLUMN_LOGIN_IP, models.USER_COLUMN_LOGIN_TIME); err != nil {
 		log.Errorf("update user [%s] login ip error [%s]", strUserName, strIP)
-		return nil, types.CODE_INTERNAL_SERVER_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
 
 	if strPassword != user.Password {
 		err = fmt.Errorf("user name [%s] password verify failed, password [%s] not match", strUserName, strPassword)
 		log.Errorf(err.Error())
-		return nil, types.CODE_INVALID_USER_OR_PASSWORD
+		return nil, types.NewBizCode(types.CODE_INVALID_USER_OR_PASSWORD)
 	}
 	_, _ = m.loginDAO.Insert(&models.LoginDO{
 		UserId:    user.GetId(),
@@ -227,36 +227,35 @@ func (m *PlatformCore) CheckPrivilege(c *gin.Context, ctx *types.Context, strUse
 }
 
 func (m *PlatformCore) CheckUserNameExist(ctx *types.Context, strUserName string) (code types.BizCode) {
-
 	if ok, err := m.userDAO.CheckActiveUserByUserName(strUserName); err != nil {
-		log.Error("query by user name error [%s]", err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		log.Error("query by user name %s error [%s]", strUserName, err.Error())
+		return types.NewBizCodeDatabaseError(err.Error())
 	} else if ok {
-		return types.CODE_ALREADY_EXIST
+		return types.NewBizCode(types.CODE_ALREADY_EXIST)
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) CheckUserEmailExist(ctx *types.Context, strEmail string) (code types.BizCode) {
 
 	if ok, err := m.userDAO.CheckActiveUserByEmail(strEmail); err != nil {
 		log.Error("query by email error [%s]", err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	} else if ok {
-		return types.CODE_ALREADY_EXIST
+		return types.NewBizCode(types.CODE_ALREADY_EXIST, "email already exists")
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) CheckUserPhoneExist(ctx *types.Context, strPhone string) (code types.BizCode) {
 
 	if ok, err := m.userDAO.CheckActiveUserByPhone(strPhone); err != nil {
-		log.Error("query by email error [%s]", err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		log.Error(err.Error())
+		return types.NewBizCodeDatabaseError(err.Error())
 	} else if ok {
-		return types.CODE_ALREADY_EXIST
+		return types.NewBizCode(types.CODE_ALREADY_EXIST)
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) ListUser(ctx *types.Context, req *proto.PlatformListUserReq) (totalUsers []*proto.PlatformTotalUser, total int64, code types.BizCode) {
@@ -265,8 +264,7 @@ func (m *PlatformCore) ListUser(ctx *types.Context, req *proto.PlatformListUserR
 	totalUsers = make([]*proto.PlatformTotalUser, 0)
 	if users, total, err = m.userRoleDAO.SelectUsers(req); err != nil {
 		log.Errorf(err.Error())
-		code = types.CODE_INTERNAL_SERVER_ERROR
-		return
+		return nil, 0, types.NewBizCodeDatabaseError(err.Error())
 	}
 	for _, user := range users {
 		sysUser := &proto.PlatformTotalUser{
@@ -294,17 +292,17 @@ func (m *PlatformCore) CreateUser(ctx *types.Context, req *proto.PlatformCreateU
 	var role *models.RoleDO
 
 	if req.PhoneNumber != "" && !utils.VerifyMobileFormat(req.PhoneNumber) {
-		return nil, types.CODE_INVALID_PARAMS
+		return nil, types.NewBizCode(types.CODE_INVALID_PARAMS, "invalid phone number")
 	}
 
 	if req.RoleName != "" {
 		if role, err = m.roleDAO.SelectRoleByName(req.RoleName); err != nil {
 			log.Errorf(err.Error())
-			return nil, types.CODE_INTERNAL_SERVER_ERROR
+			return nil, types.NewBizCodeDatabaseError(err.Error())
 		}
 		if role == nil || role.GetId() == 0 {
 			log.Errorf("role name [%s] not found", req.RoleName)
-			return nil, types.CODE_NOT_FOUND
+			return nil, types.NewBizCode(types.CODE_NOT_FOUND)
 		}
 
 		//TODO: merge two operations into one transaction later
@@ -332,7 +330,7 @@ func (m *PlatformCore) CreateUser(ctx *types.Context, req *proto.PlatformCreateU
 	}
 	if lastId, err = m.userDAO.Insert(do); err != nil {
 		log.Errorf(err.Error())
-		return nil, types.CODE_INTERNAL_SERVER_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
 	do.SetId(int32(lastId))
 	if err = m.userRoleDAO.Insert(&models.UserRoleDO{
@@ -343,9 +341,9 @@ func (m *PlatformCore) CreateUser(ctx *types.Context, req *proto.PlatformCreateU
 		Deleted:    false,
 	}); err != nil {
 		log.Errorf(err.Error())
-		return nil, types.CODE_INTERNAL_SERVER_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
-	return do, types.CODE_OK
+	return do, types.BizOK
 }
 
 func (m *PlatformCore) EditUser(ctx *types.Context, req *proto.PlatformEditUserReq) (code types.BizCode) {
@@ -359,26 +357,26 @@ func (m *PlatformCore) EditUser(ctx *types.Context, req *proto.PlatformEditUserR
 
 	if req.PhoneNumber != "" && user.PhoneNumber != req.PhoneNumber {
 		if !utils.VerifyMobileFormat(req.PhoneNumber) {
-			return types.CODE_INVALID_PARAMS
+			return types.NewBizCode(types.CODE_INVALID_PARAMS, "invalid phone number")
 		}
 	}
 
 	if user.Email != req.Email {
 		if !utils.VerifyEmailFormat(req.Email) {
-			return types.CODE_INVALID_PARAMS
+			return types.NewBizCode(types.CODE_INVALID_PARAMS, "invalid email")
 		}
 		var ok bool
 		if ok, err = m.userDAO.CheckActiveUserByEmail(req.Email); err != nil {
 			log.Errorf(err.Error())
-			return types.CODE_INTERNAL_SERVER_ERROR
+			return types.NewBizCodeDatabaseError(err.Error())
 		} else if ok {
-			return types.CODE_ALREADY_EXIST
+			return types.NewBizCode(types.CODE_ALREADY_EXIST)
 		}
 	}
 
 	if userRoleDo, err = m.userRoleDAO.SelectUserByName(req.UserName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 
 	user.PhoneNumber = req.PhoneNumber
@@ -396,7 +394,7 @@ func (m *PlatformCore) EditUser(ctx *types.Context, req *proto.PlatformEditUserR
 		models.USER_COLUMN_EDIT_USER); err != nil {
 
 		log.Errorf("%s", err)
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 
 	// 用户角色更新
@@ -414,9 +412,9 @@ func (m *PlatformCore) EditUser(ctx *types.Context, req *proto.PlatformEditUserR
 	}, models.USER_ROLE_COLUMN_ROLE_NAME, models.USER_ROLE_COLUMN_EDIT_USER); err != nil {
 
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) ResetUserPassword(ctx *types.Context, req *proto.PlatformResetPasswordReq) (code types.BizCode) {
@@ -431,33 +429,33 @@ func (m *PlatformCore) ResetUserPassword(ctx *types.Context, req *proto.Platform
 	user.Password = req.NewPassword
 	if err = m.userDAO.UpdateByName(user, models.USER_COLUMN_PASSWORD, models.USER_COLUMN_EDIT_USER); err != nil {
 		log.Error(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) EnableUser(ctx *types.Context, req *proto.PlatformEnableUserReq) (r *proto.PlatformEnableUserResp, code types.BizCode) {
 	if err := m.userDAO.UpdateUserState(req.UserName, dao.UserState_Enabled); err != nil {
 		log.Errorf(err.Error())
-		return nil, types.CODE_DATABASE_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
-	return &proto.PlatformEnableUserResp{}, types.CODE_OK
+	return &proto.PlatformEnableUserResp{}, types.BizOK
 }
 
 func (m *PlatformCore) DisableUser(ctx *types.Context, req *proto.PlatformDisableUserReq) (r *proto.PlatformDisableUserResp, code types.BizCode) {
 	if err := m.userDAO.UpdateUserState(req.UserName, dao.UserState_Disabled); err != nil {
 		log.Errorf(err.Error())
-		return nil, types.CODE_DATABASE_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
-	return &proto.PlatformDisableUserResp{}, types.CODE_OK
+	return &proto.PlatformDisableUserResp{}, types.BizOK
 }
 
 func (m *PlatformCore) DeleteUser(ctx *types.Context, req *proto.PlatformDeleteUserReq) (code types.BizCode) {
 	var err error
 	var user *models.UserDO
 	if req.UserName == "" {
-		log.Errorf("user name to delete is nil")
-		return types.CODE_INVALID_PARAMS
+		err = log.Errorf("user name to delete is nil")
+		return types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error())
 	}
 
 	if user, code = m.GetUserByName(ctx, req.UserName); !code.Ok() {
@@ -466,8 +464,8 @@ func (m *PlatformCore) DeleteUser(ctx *types.Context, req *proto.PlatformDeleteU
 	}
 
 	if user.GetId() == 0 {
-		log.Errorf("user %s not found", req.UserName)
-		return types.CODE_INVALID_PARAMS
+		err = log.Errorf("user %s not found", req.UserName)
+		return types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error())
 	}
 	if err = m.userRoleDAO.Delete(&models.UserRoleDO{
 		UserName: req.UserName,
@@ -475,16 +473,16 @@ func (m *PlatformCore) DeleteUser(ctx *types.Context, req *proto.PlatformDeleteU
 		Deleted:  true,
 	}); err != nil {
 		log.Error("delete role by user name error [%s]", err)
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	privilege.DeleteUser(req.UserName)
 	user.Deleted = true
 	user.EditUser = ctx.UserName()
 	if err = m.userDAO.DeleteUser(user); err != nil {
 		log.Errorf("delete user error [%s]", err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) GetUserByName(ctx *types.Context, strUserName string) (do *models.UserDO, code types.BizCode) {
@@ -493,14 +491,14 @@ func (m *PlatformCore) GetUserByName(ctx *types.Context, strUserName string) (do
 	do, err = m.userDAO.SelectUserByName(strUserName)
 	if err != nil {
 		log.Errorf(err.Error())
-		return nil, types.CODE_INTERNAL_SERVER_ERROR
+		return nil, types.NewBizCodeDatabaseError(err.Error())
 	}
 
 	if do == nil || do.GetId() == 0 {
 		log.Errorf("user [%s] not found", strUserName)
-		return nil, types.CODE_NOT_FOUND
+		return nil, types.NewBizCode(types.CODE_NOT_FOUND)
 	}
-	return do, types.CODE_OK
+	return do, types.BizOK
 }
 
 func (m *PlatformCore) ListRole(ctx *types.Context, req *proto.PlatformListRoleReq) (roleLists []*proto.PlatformSysRole, total int64, code types.BizCode) {
@@ -535,9 +533,9 @@ func (m *PlatformCore) CheckUserPassword(ctx *types.Context, strUserName, strPas
 		return
 	}
 	if strPassword != do.Password {
-		return false, types.CODE_OK
+		return false, types.BizOK
 	}
-	return true, types.CODE_OK
+	return true, types.BizOK
 }
 
 func (m *PlatformCore) CreateRole(ctx *types.Context, req *proto.PlatformCreateRoleReq) (code types.BizCode) {
@@ -546,12 +544,12 @@ func (m *PlatformCore) CreateRole(ctx *types.Context, req *proto.PlatformCreateR
 
 	if exist, err = m.roleDAO.CheckRoleExistByName(req.RoleName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 
 	if exist {
 		log.Errorf("role name [%s] already exist", req.RoleName)
-		return types.CODE_ALREADY_EXIST
+		return types.NewBizCode(types.CODE_ALREADY_EXIST)
 	}
 
 	if _, err = m.roleDAO.Insert(&models.RoleDO{
@@ -562,9 +560,9 @@ func (m *PlatformCore) CreateRole(ctx *types.Context, req *proto.PlatformCreateR
 	}); err != nil {
 
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) EditRole(ctx *types.Context, req *proto.PlatformEditRoleReq) (code types.BizCode) {
@@ -574,7 +572,7 @@ func (m *PlatformCore) EditRole(ctx *types.Context, req *proto.PlatformEditRoleR
 	// 查询role表获取信息
 	if do, err = m.roleDAO.SelectRoleById(req.Id); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	// 若角色名称相同则直接更新描述
 	if do.RoleName == req.RoleName {
@@ -583,18 +581,18 @@ func (m *PlatformCore) EditRole(ctx *types.Context, req *proto.PlatformEditRoleR
 			models.ROLE_COLUMN_ROLE_NAME,
 			models.ROLE_COLUMN_REMARK); err != nil {
 			log.Errorf(err.Error())
-			return types.CODE_INTERNAL_SERVER_ERROR
+			return types.NewBizCodeDatabaseError(err.Error())
 		}
-		return types.CODE_OK
+		return types.BizOK
 	}
 	// 检查名称是否存在
 	if ok, err = m.roleDAO.CheckRoleExistByName(req.RoleName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	if ok {
 		log.Errorf("role name [%s] already exist", req.RoleName)
-		return types.CODE_ALREADY_EXIST
+		return types.NewBizCode(types.CODE_ALREADY_EXIST, "role name already exist")
 	}
 	//角色权限继承 roleA 继承/获取 roleB权限
 	privilege.InheritRoleAuthority(req.RoleName, do.RoleName)
@@ -604,7 +602,7 @@ func (m *PlatformCore) EditRole(ctx *types.Context, req *proto.PlatformEditRoleR
 	var dos = make([]*models.UserRoleDO, 0)
 	if dos, err = m.userRoleDAO.SelectUserByRole(do.RoleName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	for _, doRole := range dos {
 		doRole.RoleName = req.RoleName
@@ -623,9 +621,9 @@ func (m *PlatformCore) EditRole(ctx *types.Context, req *proto.PlatformEditRoleR
 		models.ROLE_COLUMN_REMARK,
 	); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) DeleteRole(ctx *types.Context, req *proto.PlatformDeleteRoleReq) (code types.BizCode) {
@@ -634,21 +632,21 @@ func (m *PlatformCore) DeleteRole(ctx *types.Context, req *proto.PlatformDeleteR
 
 	if exist, err = m.roleDAO.CheckRoleExistByName(req.RoleName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	if !exist {
 		log.Warnf("role name [%s] not found", req.RoleName)
-		return types.CODE_NOT_FOUND
+		return types.NewBizCode(types.CODE_NOT_FOUND, "role name not found")
 	}
 
 	var dos = make([]*models.UserRoleDO, 0)
 	if dos, err = m.userRoleDAO.SelectUserByRole(req.RoleName); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	if len(dos) > 0 {
 		log.Warnf("role: %s had %d user", req.RoleName, len(dos))
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCode(types.CODE_ACCESS_VIOLATE, "role has too many users to delete")
 	}
 	// 删除角色
 	privilege.DeleteRole(req.RoleName)
@@ -659,15 +657,15 @@ func (m *PlatformCore) DeleteRole(ctx *types.Context, req *proto.PlatformDeleteR
 		EditUser: ctx.UserName(),
 	}); err != nil {
 		log.Errorf(err.Error())
-		return types.CODE_INTERNAL_SERVER_ERROR
+		return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) AuthRole(ctx *types.Context, req *proto.PlatformAuthRoleReq) (code types.BizCode) {
 	if len(req.Privilege) == 0 {
 		privilege.DeleteRole(req.RoleName)
-		return types.CODE_OK
+		return types.BizOK
 	}
 	// 获取具有角色的用户
 	res, err := privilege.CasRule.GetUsersForRole(req.RoleName)
@@ -693,7 +691,7 @@ func (m *PlatformCore) AuthRole(ctx *types.Context, req *proto.PlatformAuthRoleR
 		// 给用户添加角色
 		privilege.AddUserRole(user, req.RoleName)
 	}
-	return types.CODE_OK
+	return types.BizOK
 }
 
 func (m *PlatformCore) InquireAuth(ctx *types.Context, req *proto.PlatformInquireAuthReq) (auth []string, code types.BizCode) {
@@ -704,9 +702,9 @@ func (m *PlatformCore) InquireAuth(ctx *types.Context, req *proto.PlatformInquir
 	case proto.TypeRole:
 		auth = privilege.GetRoleAuthority(req.Name)
 	default:
-		return auth, types.CODE_TYPE_UNDEFINED
+		return auth, types.NewBizCode(types.CODE_TYPE_UNDEFINED, "auth type not defined")
 	}
-	return auth, types.CODE_OK
+	return auth, types.BizOK
 }
 
 func (m *PlatformCore) UserQuery(ctx *types.Context, req *proto.PlatformUserQueryReq) (userList proto.PlatformUserQueryResp, total int64, code types.BizCode) {
@@ -740,7 +738,7 @@ func (m *PlatformCore) EmailConfigList(ctx *types.Context, req *proto.PlatformEm
 
 func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailConfigReq) (emailConfig proto.PlatformEmailConfigResp, code types.BizCode) {
 	if !utils.VerifyEmailFormat(req.EmailName) {
-		return emailConfig, types.CODE_INVALID_PARAMS
+		return emailConfig, types.NewBizCode(types.CODE_INVALID_PARAMS, "malformed email address")
 	}
 	var err error
 	emailServerDo := &models.DictionaryDO{
@@ -752,8 +750,8 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	}
 	err = m.dictionaryDAO.Upsert(emailServerDo)
 	if err != nil {
-		log.Errorf("emailServerDo error:%s\n", err.Error())
-		return emailConfig, types.CODE_INTERNAL_SERVER_ERROR
+		log.Errorf("emailServerDo error:%s", err.Error())
+		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	portDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Port,
@@ -764,8 +762,8 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	}
 	err = m.dictionaryDAO.Upsert(portDo)
 	if err != nil {
-		log.Errorf("portDo error:%s\n", err.Error())
-		return emailConfig, types.CODE_INTERNAL_SERVER_ERROR
+		log.Errorf("portDo error:%s", err.Error())
+		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	emailNameDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Name,
@@ -776,8 +774,8 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	}
 	err = m.dictionaryDAO.Upsert(emailNameDo)
 	if err != nil {
-		log.Errorf("emailServerDo error:%s\n", err.Error())
-		return emailConfig, types.CODE_INTERNAL_SERVER_ERROR
+		log.Errorf("emailServerDo error:%s", err.Error())
+		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	autoCodeDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Auth_Code,
@@ -789,7 +787,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(autoCodeDo)
 	if err != nil {
 		log.Errorf("autoCodeDo error:%s\n", err.Error())
-		return emailConfig, types.CODE_INTERNAL_SERVER_ERROR
+		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	SendNameDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Send_Name,
@@ -801,7 +799,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(SendNameDo)
 	if err != nil {
 		log.Errorf("emailServerDo error:%s\n", err.Error())
-		return emailConfig, types.CODE_INTERNAL_SERVER_ERROR
+		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	return
 }
@@ -812,40 +810,40 @@ func (m *PlatformCore) CheckExist(ctx *types.Context, req *proto.PlatformCheckEx
 		{
 			if do, err := m.userDAO.SelectUserByName(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.CODE_INTERNAL_SERVER_ERROR
+				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 			} else if do != nil && do.GetId() != 0 {
-				return types.CODE_ALREADY_EXIST
+				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
 		}
 	case types.CheckType_UserPhoneNumber:
 		{
 			if do, err := m.userDAO.SelectUserByPhone(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.CODE_INTERNAL_SERVER_ERROR
+				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 			} else if do != nil && do.GetId() != 0 {
-				return types.CODE_ALREADY_EXIST
+				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
 		}
 	case types.CheckType_UserEmail:
 		{
 			if do, err := m.userDAO.SelectUserByEmail(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.CODE_INTERNAL_SERVER_ERROR
+				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 			} else if do != nil && do.GetId() != 0 {
-				return types.CODE_ALREADY_EXIST
+				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
 		}
 	case types.CheckType_RoleName:
 		{
 			if do, err := m.roleDAO.SelectRoleByName(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.CODE_INTERNAL_SERVER_ERROR
+				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 			} else if do != nil && do.GetId() != 0 {
-				return types.CODE_ALREADY_EXIST
+				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
 		}
 	}
-	return types.CODE_NOT_FOUND
+	return types.NewBizCode(types.CODE_NOT_FOUND)
 }
 
 func (m *PlatformCore) ListRoleUser(ctx *types.Context, req *proto.PlatformListRoleUserReq) (users []*proto.PlatformUser, total int64, code types.BizCode) {
@@ -853,7 +851,7 @@ func (m *PlatformCore) ListRoleUser(ctx *types.Context, req *proto.PlatformListR
 
 	if users, total, err = m.userRoleDAO.SelectRoleUsers(req.RoleName, req.PageNo, req.PageSize); err != nil {
 		log.Errorf(err.Error())
-		return nil, 0, types.CODE_INTERNAL_SERVER_ERROR
+		return nil, 0, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
 	}
 	return
 }

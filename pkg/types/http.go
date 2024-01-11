@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type AuthType string
@@ -40,70 +39,11 @@ const (
 	JSON_RPC_VER string = "2.0"
 )
 
-type BizCode int
-
-const (
-	CODE_ERROR                           BizCode = -1   //unknown error
-	CODE_OK                              BizCode = 0    //success
-	CODE_TOO_MANAY_REQUESTS              BizCode = 429  //too many requests
-	CODE_INTERNAL_SERVER_ERROR           BizCode = 500  //internal service error
-	CODE_DATABASE_ERROR                  BizCode = 501  //database server error
-	CODE_ACCESS_DENY                     BizCode = 1000 //access deny
-	CODE_UNAUTHORIZED                    BizCode = 1001 //user unauthorized
-	CODE_INVALID_USER_OR_PASSWORD        BizCode = 1002 //user or password incorrect
-	CODE_INVALID_PARAMS                  BizCode = 1003 //parameters invalid
-	CODE_INVALID_JSON_OR_REQUIRED_PARAMS BizCode = 1004 //json format is invalid
-	CODE_ALREADY_EXIST                   BizCode = 1005 //account name already exist
-	CODE_NOT_FOUND                       BizCode = 1006 //record not found
-	CODE_INVALID_PASSWORD                BizCode = 1007 //wrong password
-	CODE_INVALID_AUTH_CODE               BizCode = 1008 //invalid auth code
-	CODE_ACCESS_VIOLATE                  BizCode = 1009 //access violate
-	CODE_TYPE_UNDEFINED                  BizCode = 1010 //type undefined
-	CODE_BAD_DID_OR_SIGNATURE            BizCode = 1011 //bad did or signature
-	CODE_ACCOUNT_BANNED                  BizCode = 1012 //account was banned
-)
-
-var codeMessages = map[BizCode]string{
-	CODE_ERROR:                           "unknown error",
-	CODE_OK:                              "OK",
-	CODE_TOO_MANAY_REQUESTS:              "too many requests",
-	CODE_INTERNAL_SERVER_ERROR:           "internal server error",
-	CODE_DATABASE_ERROR:                  "database error",
-	CODE_UNAUTHORIZED:                    "unauthorized",
-	CODE_ACCESS_DENY:                     "access deny",
-	CODE_INVALID_USER_OR_PASSWORD:        "invalid user or password",
-	CODE_INVALID_PARAMS:                  "invalid params",
-	CODE_INVALID_JSON_OR_REQUIRED_PARAMS: "invalid json request",
-	CODE_ALREADY_EXIST:                   "data already exist",
-	CODE_NOT_FOUND:                       "data not found",
-	CODE_INVALID_PASSWORD:                "invalid password",
-	CODE_INVALID_AUTH_CODE:               "invalid auth code",
-	CODE_ACCESS_VIOLATE:                  "access violate",
-	CODE_TYPE_UNDEFINED:                  "type undefined",
-	CODE_BAD_DID_OR_SIGNATURE:            "bad id or signature",
-	CODE_ACCOUNT_BANNED:                  "account banned",
-}
-
-func (c BizCode) Ok() bool {
-	return c == CODE_OK
-}
-
-func (c BizCode) String() string {
-	if m, ok := codeMessages[c]; ok {
-		return m
-	}
-	return fmt.Sprintf("CODE_UNKNOWN<%d>", c)
-}
-
-func (c BizCode) GoString() string {
-	return c.String()
-}
-
 type HttpHeader struct {
-	Code    BizCode `json:"code"`    //response code of business (0=OK, other fail)
-	Message string  `json:"message"` //error message
-	Total   int64   `json:"total"`   //result total
-	Count   int     `json:"count"`   //result count (single page)
+	Code    int    `json:"code"`    //response code of business (0=OK, other fail)
+	Message string `json:"message"` //error message
+	Total   int64  `json:"total"`   //result total
+	Count   int    `json:"count"`   //result count (single page)
 }
 
 type HttpResponse struct {
@@ -119,7 +59,7 @@ type RpcRequest struct {
 }
 
 type RpcError struct {
-	Code    BizCode     `json:"code"`    //response code of business (0=OK, other fail)
+	Code    int         `json:"code"`    //response code of business (0=OK, other fail)
 	Message string      `json:"message"` //error message
 	Data    interface{} `json:"data"`    //error attach data
 }
@@ -144,7 +84,7 @@ func NewRpcResponse(id interface{}, result interface{}) *RpcResponse {
 	}
 }
 
-func NewRpcError(id interface{}, code BizCode, strError string) *RpcResponse {
+func NewRpcError(id interface{}, code int, strError string) *RpcResponse {
 	return &RpcResponse{
 		Id:      id,
 		JsonRpc: JSON_RPC_VER,

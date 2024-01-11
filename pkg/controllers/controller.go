@@ -28,14 +28,14 @@ func NewController(cfg *config.Config) *Controller {
 }
 
 func (m *Controller) OK(c *gin.Context, data interface{}, count int, total int64) {
-	var code = types.CODE_OK
+	var bc = types.BizOK
 	if data == nil {
 		data = struct{}{}
 	}
 	var r = &types.HttpResponse{
 		Header: types.HttpHeader{
-			Code:    code,
-			Message: code.String(),
+			Code:    bc.Code,
+			Message: bc.Message,
 			Count:   count,
 			Total:   total,
 		},
@@ -45,16 +45,16 @@ func (m *Controller) OK(c *gin.Context, data interface{}, count int, total int64
 	c.Abort()
 }
 
-func (m *Controller) Error(c *gin.Context, code types.BizCode, message string) {
+func (m *Controller) Error(c *gin.Context, bc types.BizCode) {
 	var r = &types.HttpResponse{
 		Header: types.HttpHeader{
-			Code:    code,
-			Message: message,
+			Code:    bc.Code,
+			Message: bc.Message,
 			Count:   0,
 		},
 		Data: struct{}{},
 	}
-	log.Errorf("[Controller] response error code [%d] message [%s]", code, message)
+	log.Errorf("[Controller] response error code [%d] message [%s]", bc.Code, bc.Message)
 	c.JSON(http.StatusOK, r)
 	c.Abort()
 }
@@ -103,7 +103,7 @@ func (m *Controller) ContextPlatformPrivilege(c *gin.Context, privileges ...priv
 	ctx = sessions.GetContext(c)
 	if ctx == nil {
 		err = log.Errorf("user session context is nil, token [%s]", middleware.GetAuthToken(c))
-		m.Error(c, types.CODE_UNAUTHORIZED, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_UNAUTHORIZED, err.Error()))
 		return
 	}
 	for _, auth := range privileges {
@@ -112,14 +112,14 @@ func (m *Controller) ContextPlatformPrivilege(c *gin.Context, privileges ...priv
 		}
 	}
 	err = log.Errorf("operator name [%s] id [%v] have no privilege %+v", ctx.UserName(), ctx.UserId(), privileges)
-	m.Error(c, types.CODE_ACCESS_DENY, err.Error())
+	m.Error(c, types.NewBizCode(types.CODE_ACCESS_DENY, err.Error()))
 	return ctx, false
 }
 
 func (m *Controller) bindJSON(c *gin.Context, req interface{}) (err error) {
 	if err = c.ShouldBindJSON(req); err != nil {
 		log.Errorf("%s", err)
-		m.Error(c, types.CODE_INVALID_JSON_OR_REQUIRED_PARAMS, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_INVALID_JSON_OR_REQUIRED_PARAMS, err.Error()))
 		c.Abort()
 		return
 	}

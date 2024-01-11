@@ -25,8 +25,8 @@ func (m *Controller) PlatformLoginV1(c *gin.Context) { //user login
 	var do *models.UserDO
 	var strIP = m.GetClientIP(c)
 	var code types.BizCode
-	if do, code = m.PlatformCore.UserLogin(req.UserName, req.Password, strIP); code != types.CODE_OK {
-		m.Error(c, code, code.String())
+	if do, code = m.PlatformCore.UserLogin(req.UserName, req.Password, strIP); !code.Ok() {
+		m.Error(c, code)
 		return
 	}
 	s := &types.Session{
@@ -40,7 +40,7 @@ func (m *Controller) PlatformLoginV1(c *gin.Context) { //user login
 
 	if s.AuthToken, _, err = middleware.GenerateToken(s); err != nil {
 		err = log.Errorf("generate token error [%s]", err.Error())
-		m.Error(c, types.CODE_INVALID_PARAMS, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error()))
 		return
 	}
 
@@ -50,7 +50,7 @@ func (m *Controller) PlatformLoginV1(c *gin.Context) { //user login
 	role := m.PlatformCore.GetUserRole(ctx, do.GetUserName())
 	if role == nil {
 		err = log.Errorf("user [%s] role not found", req.UserName)
-		m.Error(c, types.CODE_NOT_FOUND, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_NOT_FOUND, err.Error()))
 		return
 	}
 
@@ -89,7 +89,7 @@ func (m *Controller) PlatformCheckExistV1(c *gin.Context) { //check user account
 
 	code := m.PlatformCore.CheckExist(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	m.OK(c, &proto.PlatformCheckExistResp{}, 1, 1)
@@ -114,7 +114,7 @@ func (m *Controller) PlatformListUserV1(c *gin.Context) { //list platform users
 	users, total, code := m.PlatformCore.ListUser(ctx, &req)
 	if !code.Ok() {
 		log.Errorf("list user code [%s]", code.String())
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	m.OK(c, proto.PlatformListUserResp{Users: users}, len(users), total)
@@ -136,24 +136,24 @@ func (m *Controller) PlatformCreateUserV1(c *gin.Context) { //create user accoun
 	}
 
 	if code := m.PlatformCore.CheckUserNameExist(ctx, req.UserName); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
 	if req.Email != "" {
 		if code := m.PlatformCore.CheckUserEmailExist(ctx, req.Email); !code.Ok() {
-			m.Error(c, code, "email address already exists")
+			m.Error(c, code)
 			return
 		}
 		if !utils.VerifyEmailFormat(req.Email) {
 			err = log.Errorf("email [%s] format error", req.Email)
-			m.Error(c, types.CODE_INVALID_PARAMS, err.Error())
+			m.Error(c, types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error()))
 			return
 		}
 	}
 	user, code := m.PlatformCore.CreateUser(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -181,7 +181,7 @@ func (m *Controller) PlatformEditUserV1(c *gin.Context) { //edit user informatio
 
 	var code types.BizCode
 	if code = m.PlatformCore.EditUser(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	m.OK(c, &proto.PlatformEditUserResp{}, 1, 1)
@@ -203,7 +203,7 @@ func (m *Controller) PlatformEnableUserV1(c *gin.Context) {
 	r, code := m.PlatformCore.EnableUser(ctx, &req)
 	if !code.Ok() {
 		log.Warnf("name [%s] id [%v]  operator user failed", ctx.UserName(), ctx.UserId())
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -226,7 +226,7 @@ func (m *Controller) PlatformDisableUserV1(c *gin.Context) {
 	r, code := m.PlatformCore.DisableUser(ctx, &req)
 	if !code.Ok() {
 		log.Warnf("name [%s] id [%v]  operator user failed", ctx.UserName(), ctx.UserId())
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -249,13 +249,13 @@ func (m *Controller) PlatformDeleteUserV1(c *gin.Context) { //delete user accoun
 	}
 	if req.UserName == ctx.UserName() {
 		err = log.Errorf("can't delete self")
-		m.Error(c, types.CODE_ACCESS_DENY, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_ACCESS_DENY, err.Error()))
 		return
 	}
 
 	if code := m.PlatformCore.DeleteUser(ctx, &req); !code.Ok() {
 		log.Warnf("operator name [%s] id [%v]  delete user failed", ctx.UserName(), ctx.UserId())
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -278,7 +278,7 @@ func (m *Controller) PlatformListRoleV1(c *gin.Context) { //list platform roles
 
 	roles, total, code := m.PlatformCore.ListRole(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	count := len(roles)
@@ -300,7 +300,7 @@ func (m *Controller) PlatformCreateRoleV1(c *gin.Context) { //create a custom pl
 	}
 
 	if code := m.PlatformCore.CreateRole(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -322,7 +322,7 @@ func (m *Controller) PlatformEditRoleV1(c *gin.Context) { //edit custom platform
 	}
 
 	if code := m.PlatformCore.EditRole(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -344,7 +344,7 @@ func (m *Controller) PlatformDeleteRoleV1(c *gin.Context) { //delete custom plat
 	}
 
 	if code := m.PlatformCore.DeleteRole(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -366,7 +366,7 @@ func (m *Controller) PlatformAuthRoleV1(c *gin.Context) {
 	}
 
 	if code := m.PlatformCore.AuthRole(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -389,7 +389,7 @@ func (m *Controller) PlatformInquireAuthV1(c *gin.Context) {
 
 	authority, code := m.PlatformCore.InquireAuth(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -414,8 +414,8 @@ func (m *Controller) PlatformPrivilegeLevelV1(c *gin.Context) {
 
 	PlatformPrivilegeLevelResp, code := m.PlatformCore.PrivilegeLevel(ctx, &req)
 	if !code.Ok() {
-		log.Errorf("list device type code [%s]", code.String())
-		m.Error(c, code, code.String())
+		log.Errorf("list device type code [%s]")
+		m.Error(c, code)
 		return
 	}
 	m.OK(c, PlatformPrivilegeLevelResp, 1, 1)
@@ -436,7 +436,7 @@ func (m *Controller) PlatformResetPasswordV1(c *gin.Context) { //platform admini
 	}
 
 	if code := m.PlatformCore.ResetUserPassword(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 
@@ -459,23 +459,23 @@ func (m *Controller) PlatformChangePasswordV1(c *gin.Context) { //platform user 
 
 	if m.isNilString(req.OldPassword) {
 		err = log.Errorf("request body [%+v] old password is nil or ", req)
-		m.Error(c, types.CODE_INVALID_PARAMS, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error()))
 		return
 	}
 
 	ok, code := m.PlatformCore.CheckUserPassword(ctx, ctx.UserName(), req.OldPassword)
 	if !ok {
-		if code != types.CODE_OK {
-			m.Error(c, code, code.String())
+		if code.Ok() {
+			m.Error(c, code)
 			return
 		}
 		log.Error("user [%s] old password [%s] not match when change password by self", ctx.UserName(), req.OldPassword)
-		m.Error(c, types.CODE_INVALID_PASSWORD, "password not correct")
+		m.Error(c, types.NewBizCode(types.CODE_INVALID_PASSWORD))
 		return
 	}
 	req.UserName = ctx.UserName() //user change password by self (so the user name must be self name)
 	if code = m.PlatformCore.ResetUserPassword(ctx, &req); !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	m.OK(c, &proto.PlatformResetPasswordResp{}, 1, 1)
@@ -498,7 +498,7 @@ func (m *Controller) PlatformListRoleUserV1(c *gin.Context) { //list role user
 
 	users, total, code := m.PlatformCore.ListRoleUser(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	userCount := len(users)
@@ -537,7 +537,7 @@ func (m *Controller) PlatformRefreshAuthTokenV1(c *gin.Context) {
 
 	if s.AuthToken, _, err = middleware.GenerateToken(s); err != nil {
 		err = log.Errorf("generate token error [%s]", err.Error())
-		m.Error(c, types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		m.Error(c, types.NewBizCode(types.CODE_ERROR, err.Error()))
 		return
 	}
 	_ = sessions.NewContext(s)
@@ -564,7 +564,7 @@ func (m *Controller) PlatformListOperLogV1(c *gin.Context) {
 
 	list, total, code := m.PlatformCore.ListOperLog(ctx, &req)
 	if !code.Ok() {
-		m.Error(c, code, code.String())
+		m.Error(c, code)
 		return
 	}
 	count := len(list)

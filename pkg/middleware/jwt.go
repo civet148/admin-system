@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"admin-system/pkg/types"
 	"fmt"
 	"github.com/civet148/log"
 	"net/http"
-	"admin-system/pkg/types"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -68,7 +68,7 @@ func JWT() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, types.HttpResponse{
 				Header: types.HttpHeader{
 					Code:    types.CODE_UNAUTHORIZED,
-					Message: types.CODE_UNAUTHORIZED.String(),
+					Message: "unauthorized",
 					Count:   0,
 				},
 				Data: data,
