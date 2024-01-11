@@ -657,7 +657,7 @@ func (m *PlatformCore) DeleteRole(ctx *types.Context, req *proto.PlatformDeleteR
 		EditUser: ctx.UserName(),
 	}); err != nil {
 		log.Errorf(err.Error())
-		return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return types.NewBizCodeDatabaseError(err.Error())
 	}
 	return types.BizOK
 }
@@ -751,7 +751,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(emailServerDo)
 	if err != nil {
 		log.Errorf("emailServerDo error:%s", err.Error())
-		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return emailConfig, types.NewBizCodeDatabaseError(err.Error())
 	}
 	portDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Port,
@@ -763,7 +763,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(portDo)
 	if err != nil {
 		log.Errorf("portDo error:%s", err.Error())
-		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return emailConfig, types.NewBizCodeDatabaseError(err.Error())
 	}
 	emailNameDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Name,
@@ -775,7 +775,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(emailNameDo)
 	if err != nil {
 		log.Errorf("emailServerDo error:%s", err.Error())
-		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return emailConfig, types.NewBizCodeDatabaseError(err.Error())
 	}
 	autoCodeDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Auth_Code,
@@ -787,7 +787,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(autoCodeDo)
 	if err != nil {
 		log.Errorf("autoCodeDo error:%s\n", err.Error())
-		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return emailConfig, types.NewBizCodeDatabaseError(err.Error())
 	}
 	SendNameDo := &models.DictionaryDO{
 		Name:      dao.Dictionary_Name_Email_Send_Name,
@@ -799,7 +799,7 @@ func (m *PlatformCore) EmailConfig(ctx *types.Context, req *proto.PlatformEmailC
 	err = m.dictionaryDAO.Upsert(SendNameDo)
 	if err != nil {
 		log.Errorf("emailServerDo error:%s\n", err.Error())
-		return emailConfig, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return emailConfig, types.NewBizCodeDatabaseError(err.Error())
 	}
 	return
 }
@@ -810,7 +810,7 @@ func (m *PlatformCore) CheckExist(ctx *types.Context, req *proto.PlatformCheckEx
 		{
 			if do, err := m.userDAO.SelectUserByName(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+				return types.NewBizCodeDatabaseError(err.Error())
 			} else if do != nil && do.GetId() != 0 {
 				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
@@ -819,7 +819,7 @@ func (m *PlatformCore) CheckExist(ctx *types.Context, req *proto.PlatformCheckEx
 		{
 			if do, err := m.userDAO.SelectUserByPhone(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+				return types.NewBizCodeDatabaseError(err.Error())
 			} else if do != nil && do.GetId() != 0 {
 				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
@@ -828,7 +828,7 @@ func (m *PlatformCore) CheckExist(ctx *types.Context, req *proto.PlatformCheckEx
 		{
 			if do, err := m.userDAO.SelectUserByEmail(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+				return types.NewBizCodeDatabaseError(err.Error())
 			} else if do != nil && do.GetId() != 0 {
 				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
@@ -837,7 +837,7 @@ func (m *PlatformCore) CheckExist(ctx *types.Context, req *proto.PlatformCheckEx
 		{
 			if do, err := m.roleDAO.SelectRoleByName(req.Name); err != nil {
 				log.Errorf(err.Error())
-				return types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+				return types.NewBizCodeDatabaseError(err.Error())
 			} else if do != nil && do.GetId() != 0 {
 				return types.NewBizCode(types.CODE_ALREADY_EXIST)
 			}
@@ -851,7 +851,7 @@ func (m *PlatformCore) ListRoleUser(ctx *types.Context, req *proto.PlatformListR
 
 	if users, total, err = m.userRoleDAO.SelectRoleUsers(req.RoleName, req.PageNo, req.PageSize); err != nil {
 		log.Errorf(err.Error())
-		return nil, 0, types.NewBizCode(types.CODE_INTERNAL_SERVER_ERROR, err.Error())
+		return nil, 0, types.NewBizCodeDatabaseError(err.Error())
 	}
 	return
 }
