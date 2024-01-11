@@ -3,43 +3,42 @@
 
 package models
 
-const TableNameCasbinRule = "casbin_rule" //
+const TableNameCasbinRule = "casbin_rule" // 
 
 const (
-	CASBIN_RULE_COLUMN_P_TYPE = "p_type"
-	CASBIN_RULE_COLUMN_V0     = "v0"
-	CASBIN_RULE_COLUMN_V1     = "v1"
-	CASBIN_RULE_COLUMN_V2     = "v2"
-	CASBIN_RULE_COLUMN_V3     = "v3"
-	CASBIN_RULE_COLUMN_V4     = "v4"
-	CASBIN_RULE_COLUMN_V5     = "v5"
+CASBIN_RULE_COLUMN_P_TYPE = "p_type"
+CASBIN_RULE_COLUMN_V0 = "v0"
+CASBIN_RULE_COLUMN_V1 = "v1"
+CASBIN_RULE_COLUMN_V2 = "v2"
+CASBIN_RULE_COLUMN_V3 = "v3"
+CASBIN_RULE_COLUMN_V4 = "v4"
+CASBIN_RULE_COLUMN_V5 = "v5"
 )
 
-type CasbinRuleDO struct {
-	PType string `json:"p_type" db:"p_type" bson:"p_type"` //
-	V0    string `json:"v0" db:"v0" bson:"v0"`             //
-	V1    string `json:"v1" db:"v1" bson:"v1"`             //
-	V2    string `json:"v2" db:"v2" bson:"v2"`             //
-	V3    string `json:"v3" db:"v3" bson:"v3"`             //
-	V4    string `json:"v4" db:"v4" bson:"v4"`             //
-	V5    string `json:"v5" db:"v5" bson:"v5"`             //
+type CasbinRuleDO struct { 
+	PType string `json:"p_type" db:"p_type" bson:"p_type"` // 
+	V0 string `json:"v0" db:"v0" bson:"v0"` // 
+	V1 string `json:"v1" db:"v1" bson:"v1"` // 
+	V2 string `json:"v2" db:"v2" bson:"v2"` // 
+	V3 string `json:"v3" db:"v3" bson:"v3"` // 
+	V4 string `json:"v4" db:"v4" bson:"v4"` // 
+	V5 string `json:"v5" db:"v5" bson:"v5"` // 
 }
 
-func (do *CasbinRuleDO) GetPType() string  { return do.PType }
-func (do *CasbinRuleDO) SetPType(v string) { do.PType = v }
-func (do *CasbinRuleDO) GetV0() string     { return do.V0 }
-func (do *CasbinRuleDO) SetV0(v string)    { do.V0 = v }
-func (do *CasbinRuleDO) GetV1() string     { return do.V1 }
-func (do *CasbinRuleDO) SetV1(v string)    { do.V1 = v }
-func (do *CasbinRuleDO) GetV2() string     { return do.V2 }
-func (do *CasbinRuleDO) SetV2(v string)    { do.V2 = v }
-func (do *CasbinRuleDO) GetV3() string     { return do.V3 }
-func (do *CasbinRuleDO) SetV3(v string)    { do.V3 = v }
-func (do *CasbinRuleDO) GetV4() string     { return do.V4 }
-func (do *CasbinRuleDO) SetV4(v string)    { do.V4 = v }
-func (do *CasbinRuleDO) GetV5() string     { return do.V5 }
-func (do *CasbinRuleDO) SetV5(v string)    { do.V5 = v }
-
+func (do *CasbinRuleDO) GetPType() string { return do.PType } 
+func (do *CasbinRuleDO) SetPType(v string) { do.PType = v } 
+func (do *CasbinRuleDO) GetV0() string { return do.V0 } 
+func (do *CasbinRuleDO) SetV0(v string) { do.V0 = v } 
+func (do *CasbinRuleDO) GetV1() string { return do.V1 } 
+func (do *CasbinRuleDO) SetV1(v string) { do.V1 = v } 
+func (do *CasbinRuleDO) GetV2() string { return do.V2 } 
+func (do *CasbinRuleDO) SetV2(v string) { do.V2 = v } 
+func (do *CasbinRuleDO) GetV3() string { return do.V3 } 
+func (do *CasbinRuleDO) SetV3(v string) { do.V3 = v } 
+func (do *CasbinRuleDO) GetV4() string { return do.V4 } 
+func (do *CasbinRuleDO) SetV4(v string) { do.V4 = v } 
+func (do *CasbinRuleDO) GetV5() string { return do.V5 } 
+func (do *CasbinRuleDO) SetV5(v string) { do.V5 = v } 
 /*
 CREATE TABLE `casbin_rule` (
   `p_type` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',

@@ -10,7 +10,7 @@ set WITH_OUT=""
 set TAGS="bson"
 set DSN_URL="mysql://root:123456@192.168.1.16:3306/admin-system?charset=utf8"
 set JSON_PROPERTIES="omitempty"
-set SPEC_TYPES="project.end_points=[]string"
+set SPEC_TYPES=""
 set TINYINT_TO_BOOL="deleted,disabled,ok,is_admin,is_inherent,is_offline, is_default"
 set TABLE_NAME=""
 

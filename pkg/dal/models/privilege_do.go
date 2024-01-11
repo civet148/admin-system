@@ -3,51 +3,50 @@
 
 package models
 
-const TableNamePrivilege = "privilege" //角色-菜单关系表
+const TableNamePrivilege = "privilege" //角色-菜单关系表 
 
 const (
-	PRIVILEGE_COLUMN_ID           = "id"
-	PRIVILEGE_COLUMN_NAME         = "name"
-	PRIVILEGE_COLUMN_ALIAS        = "alias"
-	PRIVILEGE_COLUMN_CATEGORY     = "category"
-	PRIVILEGE_COLUMN_VALUE        = "value"
-	PRIVILEGE_COLUMN_REMARK       = "remark"
-	PRIVILEGE_COLUMN_DELETED      = "deleted"
-	PRIVILEGE_COLUMN_CREATED_TIME = "created_time"
-	PRIVILEGE_COLUMN_UPDATED_TIME = "updated_time"
+PRIVILEGE_COLUMN_ID = "id"
+PRIVILEGE_COLUMN_NAME = "name"
+PRIVILEGE_COLUMN_ALIAS = "alias"
+PRIVILEGE_COLUMN_CATEGORY = "category"
+PRIVILEGE_COLUMN_VALUE = "value"
+PRIVILEGE_COLUMN_REMARK = "remark"
+PRIVILEGE_COLUMN_DELETED = "deleted"
+PRIVILEGE_COLUMN_CREATED_TIME = "created_time"
+PRIVILEGE_COLUMN_UPDATED_TIME = "updated_time"
 )
 
-type PrivilegeDO struct {
-	Id          int32  `json:"id" db:"id" bson:"_id"`                                               //自增ID
-	Name        string `json:"name" db:"name" bson:"name"`                                          //权限名称
-	Alias       string `json:"alias" db:"alias" bson:"alias"`                                       //权限别名
-	Category    int8   `json:"category" db:"category" bson:"category"`                              //权限分类(保留字段)
-	Value       string `json:"value" db:"value" bson:"value"`                                       //权限值
-	Remark      string `json:"remark" db:"remark" bson:"remark"`                                    //备注
-	Deleted     bool   `json:"deleted" db:"deleted" bson:"deleted"`                                 //是否已删除(0=未删除 1=已删除)
-	CreatedTime string `json:"created_time" db:"created_time" sqlca:"readonly" bson:"created_time"` //创建时间
-	UpdatedTime string `json:"updated_time" db:"updated_time" sqlca:"readonly" bson:"updated_time"` //更新时间
+type PrivilegeDO struct { 
+	Id int32 `json:"id" db:"id" bson:"_id"` //自增ID 
+	Name string `json:"name" db:"name" bson:"name"` //权限名称 
+	Alias string `json:"alias" db:"alias" bson:"alias"` //权限别名 
+	Category int8 `json:"category" db:"category" bson:"category"` //权限分类(保留字段) 
+	Value string `json:"value" db:"value" bson:"value"` //权限值 
+	Remark string `json:"remark" db:"remark" bson:"remark"` //备注 
+	Deleted bool `json:"deleted" db:"deleted" bson:"deleted"` //是否已删除(0=未删除 1=已删除) 
+	CreatedTime string `json:"created_time" db:"created_time" sqlca:"readonly" bson:"created_time"` //创建时间 
+	UpdatedTime string `json:"updated_time" db:"updated_time" sqlca:"readonly" bson:"updated_time"` //更新时间 
 }
 
-func (do *PrivilegeDO) GetId() int32            { return do.Id }
-func (do *PrivilegeDO) SetId(v int32)           { do.Id = v }
-func (do *PrivilegeDO) GetName() string         { return do.Name }
-func (do *PrivilegeDO) SetName(v string)        { do.Name = v }
-func (do *PrivilegeDO) GetAlias() string        { return do.Alias }
-func (do *PrivilegeDO) SetAlias(v string)       { do.Alias = v }
-func (do *PrivilegeDO) GetCategory() int8       { return do.Category }
-func (do *PrivilegeDO) SetCategory(v int8)      { do.Category = v }
-func (do *PrivilegeDO) GetValue() string        { return do.Value }
-func (do *PrivilegeDO) SetValue(v string)       { do.Value = v }
-func (do *PrivilegeDO) GetRemark() string       { return do.Remark }
-func (do *PrivilegeDO) SetRemark(v string)      { do.Remark = v }
-func (do *PrivilegeDO) GetDeleted() bool        { return do.Deleted }
-func (do *PrivilegeDO) SetDeleted(v bool)       { do.Deleted = v }
-func (do *PrivilegeDO) GetCreatedTime() string  { return do.CreatedTime }
-func (do *PrivilegeDO) SetCreatedTime(v string) { do.CreatedTime = v }
-func (do *PrivilegeDO) GetUpdatedTime() string  { return do.UpdatedTime }
-func (do *PrivilegeDO) SetUpdatedTime(v string) { do.UpdatedTime = v }
-
+func (do *PrivilegeDO) GetId() int32 { return do.Id } 
+func (do *PrivilegeDO) SetId(v int32) { do.Id = v } 
+func (do *PrivilegeDO) GetName() string { return do.Name } 
+func (do *PrivilegeDO) SetName(v string) { do.Name = v } 
+func (do *PrivilegeDO) GetAlias() string { return do.Alias } 
+func (do *PrivilegeDO) SetAlias(v string) { do.Alias = v } 
+func (do *PrivilegeDO) GetCategory() int8 { return do.Category } 
+func (do *PrivilegeDO) SetCategory(v int8) { do.Category = v } 
+func (do *PrivilegeDO) GetValue() string { return do.Value } 
+func (do *PrivilegeDO) SetValue(v string) { do.Value = v } 
+func (do *PrivilegeDO) GetRemark() string { return do.Remark } 
+func (do *PrivilegeDO) SetRemark(v string) { do.Remark = v } 
+func (do *PrivilegeDO) GetDeleted() bool { return do.Deleted } 
+func (do *PrivilegeDO) SetDeleted(v bool) { do.Deleted = v } 
+func (do *PrivilegeDO) GetCreatedTime() string { return do.CreatedTime } 
+func (do *PrivilegeDO) SetCreatedTime(v string) { do.CreatedTime = v } 
+func (do *PrivilegeDO) GetUpdatedTime() string { return do.UpdatedTime } 
+func (do *PrivilegeDO) SetUpdatedTime(v string) { do.UpdatedTime = v } 
 /*
 CREATE TABLE `privilege` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',

@@ -1,5 +1,5 @@
 FROM storeros/golang-npm14-ubuntu20.04:v1.18.9 AS builder
-MAINTAINER libin <libin@wenchu.io>
+MAINTAINER lory <civet148@outlook.com>
 
 ARG GIT_USER
 ARG GIT_PASSWORD
@@ -42,8 +42,6 @@ RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo "Asia/Shangh
 ENV TZ Asia/Shanghai
 ENV SRC_DIR /admin-system
 
-# 拷贝静态页面
-COPY --from=builder /tmp/frontend/dist /opt/static
 
 # 管理系统主程序
 COPY --from=builder $SRC_DIR/admin-system /usr/local/bin/admin-system

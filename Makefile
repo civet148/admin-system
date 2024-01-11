@@ -7,10 +7,10 @@ COMMIT_ID=`git rev-parse --short HEAD`
 MANAGER_DIR=${PWD}
 CONSOLE_CODE=/tmp/admin-system-frontend
 
-manager:
+build:
 	rm -f admin-system
 	go mod tidy && go build -ldflags "-s -w -X 'main.BuildTime=${DATE_TIME}' -X 'main.GitCommit=${COMMIT_ID}'" -o admin-system cmd/main.go
-.PHONY: manager
+.PHONY: build
 BINS+=admin-system
 
 nodejs:
@@ -21,7 +21,7 @@ console:
 	cd ${CONSOLE_CODE} && git log -2 && npm install && npm run build:prod
 
 docker:
-	docker build --build-arg GIT_USER=${GIT_USER} --build-arg GIT_PASSWORD=${GIT_PASSWORD} --tag admin-system -f ./dockers/Dockerfile.src .
+	docker build --build-arg GIT_USER=${GIT_USER} --build-arg GIT_PASSWORD=${GIT_PASSWORD} --tag admin-system -f Dockerfile .
 
 # 检查环境变量
 env-%:
