@@ -26,7 +26,6 @@
     └── utils         # 工具包
 ├── deploy    # 部署脚本和SQL文件
 ├── docs      # 开发文档目录
-├── dockers   # docker镜像编译以及测试运行脚本
 ├── static    # 静态文件目录
 ```
 # 2. 编译运行
@@ -57,4 +56,10 @@ make docker
 ./run.sh
 # 停止
 ./stop.sh
+```
+
+# 3. db2go工具安装
+
+```shell
+make db2go
 ```
