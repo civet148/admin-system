@@ -15,13 +15,16 @@ BINS+=admin-system
 
 nodejs:
 	curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash - && sudo apt update && sudo apt install -y nodejs build-essential && sudo npm install -g yarn
+.PHONY: nodejs
 
 console:
 	rm -rf ${CONSOLE_CODE} && git clone -b master https://git.your-enterprise.com/admin-system-frontend.git ${CONSOLE_CODE}
 	cd ${CONSOLE_CODE} && git log -2 && npm install && npm run build:prod
+.PHONY: console
 
 docker:
 	docker build --build-arg GIT_USER=${GIT_USER} --build-arg GIT_PASSWORD=${GIT_PASSWORD} --tag admin-system -f Dockerfile .
+.PHONY: docker
 
 # 检查环境变量
 env-%:
@@ -30,6 +33,9 @@ env-%:
 	    exit 1; \
 	fi
 
+db2go:
+	go install github.com/civet148/db2go@latest
+.PHONY: db2go
 
 clean:
 	rm -rf $(CLEAN) $(BINS)
