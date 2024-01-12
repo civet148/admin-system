@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"admin-system/pkg/types"
+	"encoding/json"
 	"fmt"
 	"github.com/civet148/log"
 	"net/http"
@@ -14,15 +15,11 @@ import (
 const (
 	CLAIM_EXPIRE       = "claim_expire"
 	CLAIM_ISSUE_AT     = "claim_iat"
-	CLAIM_USER_ID      = "claim_id"
-	CLAIM_USER_NAME    = "claim_username"
-	CLAIM_USER_ALIAS   = "claim_alias"
-	CLAIM_PHONE_NUMBER = "claim_phone_number"
-	CLAIM_IS_ADMIN     = "claim_is_admin"
+	CLAIM_USER_SESSION = "user_session"
 )
 
 const (
-	DEFAULT_TOKEN_DURATION = 12 * time.Hour
+	DEFAULT_TOKEN_DURATION = 8760 * time.Hour // default one year
 )
 
 const (
@@ -61,10 +58,8 @@ func (j JwtCode) String() string {
 
 func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var code JwtCode
 		var data interface{}
-
-		if code = ParseToken(c); code != JWT_CODE_SUCCESS {
+		if err := ParseToken(c); err != nil {
 			c.JSON(http.StatusUnauthorized, types.HttpResponse{
 				Header: types.HttpHeader{
 					Code:    types.CODE_UNAUTHORIZED,
@@ -73,7 +68,7 @@ func JWT() gin.HandlerFunc {
 				},
 				Data: data,
 			})
-			log.Errorf("[JWT] token parse failed, error code [%s]", code.String())
+			log.Errorf("[JWT] token parse failed, error [%s]", err.Error())
 			c.Abort()
 			return
 		}
@@ -83,9 +78,11 @@ func JWT() gin.HandlerFunc {
 }
 
 // generate JWT token
-func GenerateToken(s *types.Session, duration ...interface{}) (token string, claims jwt.MapClaims, err error) {
+func GenerateToken(session interface{}, duration ...interface{}) (token string, err error) {
 
 	var d time.Duration
+	var claims = make(jwt.MapClaims)
+
 	if len(duration) == 0 {
 		d = DEFAULT_TOKEN_DURATION
 	} else {
@@ -94,146 +91,71 @@ func GenerateToken(s *types.Session, duration ...interface{}) (token string, cla
 			d = DEFAULT_TOKEN_DURATION
 		}
 	}
+	var data []byte
+	data, err = json.Marshal(session)
+	if err != nil {
+		return token, log.Errorf(err.Error())
+	}
 	sign := jwt.New(jwt.SigningMethodHS256)
-	claims = make(jwt.MapClaims)
 	claims[CLAIM_EXPIRE] = time.Now().Add(d).Unix()
 	claims[CLAIM_ISSUE_AT] = time.Now().Unix()
-	claims[CLAIM_USER_ID] = s.UserId
-	claims[CLAIM_USER_NAME] = s.UserName
-	claims[CLAIM_USER_ALIAS] = s.Alias
-	claims[CLAIM_PHONE_NUMBER] = s.PhoneNumber
-	claims[CLAIM_IS_ADMIN] = s.IsAdmin
+	claims[CLAIM_USER_SESSION] = string(data)
 	sign.Claims = claims
 
 	token, err = sign.SignedString([]byte(jwtTokenSecret))
-	return token, claims, err
+	return token, err
 }
 
 // parse JWT token claims
-func ParseToken(c *gin.Context) JwtCode {
-	authToken := GetAuthToken(c)
-	if authToken == "" {
-		log.Errorf("[JWT] request header have no any key '%s'", types.HEADER_AUTH_TOKEN)
-		return JWT_CODE_ERROR_CHECK_TOKEN
+func ParseToken(c *gin.Context) error {
+	strAuthToken := GetAuthToken(c)
+	if strAuthToken == "" {
+		return log.Errorf("[JWT] request header have no any key '%s'", types.HEADER_AUTH_TOKEN)
 	}
-	token, err := jwt.Parse(authToken, func(*jwt.Token) (interface{}, error) {
-		return []byte(jwtTokenSecret), nil
-	})
+	claims, err := ParseTokenClaims(strAuthToken)
 	if err != nil {
-		log.Errorf("[JWT] parse token error [%s]", err)
-		return JWT_CODE_ERROR_PARSE_TOKEN
+		return log.Errorf(err.Error())
 	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !CheckClaims(claims) {
-		log.Errorf("[JWT] token [%s] have no claims or check failed", authToken)
-		return JWT_CODE_ERROR_INVALID_TOKEN
-	}
-
 	c.Keys = make(map[string]interface{})
 	c.Keys[CLAIM_EXPIRE] = int64(claims[CLAIM_EXPIRE].(float64))
 	if c.Keys[CLAIM_EXPIRE].(int64) < time.Now().Unix() {
-		log.Errorf("[JWT] token [%s] expired at %v\n", authToken, c.Keys[CLAIM_EXPIRE])
-		return JWT_CODE_ERROR_TOKEN_EXPIRED
+		return log.Errorf("[JWT] token [%s] expired at %v\n", strAuthToken, c.Keys[CLAIM_EXPIRE])
 	}
 
 	c.Keys[CLAIM_EXPIRE] = int64(claims[CLAIM_EXPIRE].(float64))
 	c.Keys[CLAIM_ISSUE_AT] = int64(claims[CLAIM_ISSUE_AT].(float64))
-	c.Keys[CLAIM_USER_ID] = int32(claims[CLAIM_USER_ID].(float64))
-	c.Keys[CLAIM_USER_NAME] = claims[CLAIM_USER_NAME].(string)
-	c.Keys[CLAIM_USER_ALIAS] = claims[CLAIM_USER_ALIAS].(string)
-	c.Keys[CLAIM_PHONE_NUMBER] = claims[CLAIM_PHONE_NUMBER].(string)
-	c.Keys[CLAIM_IS_ADMIN] = claims[CLAIM_IS_ADMIN].(bool)
-	return JWT_CODE_SUCCESS
+	c.Keys[CLAIM_USER_SESSION] = claims[CLAIM_USER_SESSION].(string)
+	return nil
 }
 
-func CheckClaims(claims jwt.MapClaims) bool {
+func ParseTokenClaims(strAuthToken string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(strAuthToken, func(*jwt.Token) (interface{}, error) {
+		return []byte(jwtTokenSecret), nil
+	})
+	if err != nil {
+		return jwt.MapClaims{}, log.Errorf("[JWT] parse token error [%s]", err)
+	}
 
-	if _, ok := claims[CLAIM_EXPIRE]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_EXPIRE is nil")
-		return false
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return jwt.MapClaims{}, log.Errorf("[JWT] parse token error: no claims found")
 	}
-	if _, ok := claims[CLAIM_ISSUE_AT]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_ISSUE_AT is nil")
-		return false
-	}
-	if _, ok := claims[CLAIM_USER_ID]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_USER_ID is nil")
-		return false
-	}
-	if _, ok := claims[CLAIM_USER_NAME]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_USER_NAME is nil")
-		return false
-	}
-	if _, ok := claims[CLAIM_USER_ALIAS]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_USER_ALIAS is nil")
-		return false
-	}
-	if _, ok := claims[CLAIM_PHONE_NUMBER]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_PHONE_NUMBER is nil")
-		return false
-	}
-	if _, ok := claims[CLAIM_IS_ADMIN]; !ok {
-		log.Errorf("[JWT] claims of CLAIM_IS_ADMIN is nil")
-		return false
-	}
-	return true
+	return claims, nil
 }
 
 func GetAuthToken(c *gin.Context) string {
 	return c.Request.Header.Get(types.HEADER_AUTH_TOKEN)
 }
 
-func GetClaimExpire(c *gin.Context) int64 {
-	if _, ok := c.Keys[CLAIM_EXPIRE]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_EXPIRE is nil")
-		return 0
+func GetAuthSession(strAuthToken string, session interface{}) error {
+	claims, err := ParseTokenClaims(strAuthToken)
+	if err != nil {
+		return log.Errorf(err.Error())
 	}
-	return int64(c.Keys[CLAIM_EXPIRE].(float64))
-}
-
-func GetClaimIssueAt(c *gin.Context) int64 {
-	if _, ok := c.Keys[CLAIM_ISSUE_AT]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_ISSUE_AT is nil")
-		return 0
+	strSessionJson := claims[CLAIM_USER_SESSION].(string)
+	err = json.Unmarshal([]byte(strSessionJson), session)
+	if err != nil {
+		return log.Errorf(err.Error())
 	}
-	return int64(c.Keys[CLAIM_ISSUE_AT].(float64))
-}
-
-func GetClaimUserId(c *gin.Context) int32 {
-	if _, ok := c.Keys[CLAIM_USER_ID]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_USER_ID is nil")
-		return 0
-	}
-	return c.Keys[CLAIM_USER_ID].(int32)
-}
-
-func GetClaimUserName(c *gin.Context) string {
-	if _, ok := c.Keys[CLAIM_USER_NAME]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_USER_NAME is nil")
-		return ""
-	}
-	return c.Keys[CLAIM_USER_NAME].(string)
-}
-func GetClaimUserAlias(c *gin.Context) string {
-	if _, ok := c.Keys[CLAIM_USER_ALIAS]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_USER_ALIAS is nil")
-		return ""
-	}
-	return c.Keys[CLAIM_USER_ALIAS].(string)
-}
-func GetClaimPhoneNumber(c *gin.Context) string {
-	if _, ok := c.Keys[CLAIM_PHONE_NUMBER]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_PHONE_NUMBER is nil")
-		return ""
-	}
-	return c.Keys[CLAIM_PHONE_NUMBER].(string)
-}
-
-func GetClaimIsAdmin(c *gin.Context) bool {
-	if _, ok := c.Keys[CLAIM_IS_ADMIN]; !ok {
-		log.Errorf("[JWT] gin context keys of CLAIM_IS_ADMIN is nil")
-		return false
-	}
-	return c.Keys[CLAIM_IS_ADMIN].(bool)
+	return nil
 }

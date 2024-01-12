@@ -38,7 +38,7 @@ func (m *Controller) PlatformLogin(c *gin.Context) { //user login
 		LoginIP:     strIP,
 	}
 
-	if s.AuthToken, _, err = middleware.GenerateToken(s); err != nil {
+	if s.AuthToken, err = middleware.GenerateToken(s); err != nil {
 		err = log.Errorf("generate token error [%s]", err.Error())
 		m.Error(c, types.NewBizCode(types.CODE_INVALID_PARAMS, err.Error()))
 		return
@@ -535,7 +535,7 @@ func (m *Controller) PlatformRefreshAuthToken(c *gin.Context) {
 		LoginIP:     IP,
 	}
 
-	if s.AuthToken, _, err = middleware.GenerateToken(s); err != nil {
+	if s.AuthToken, err = middleware.GenerateToken(s); err != nil {
 		err = log.Errorf("generate token error [%s]", err.Error())
 		m.Error(c, types.NewBizCode(types.CODE_ERROR, err.Error()))
 		return
