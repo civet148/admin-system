@@ -20,5 +20,5 @@ db2go --url "${DSN_URL}" --out "${OUT_DIR}" --db "${DB_NAME}" --table "${TABLE_N
       --dao dao --import-models "${IMPORT_MODELS}"
 
 echo generate go file ok, formatting...
-gofmt -w %OUT_DIR%/%PACK_NAME%
+gofmt -w ${OUT_DIR}/${PACK_NAME}
 
