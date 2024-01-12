@@ -147,7 +147,7 @@ func GetAuthToken(c *gin.Context) string {
 	return c.Request.Header.Get(types.HEADER_AUTH_TOKEN)
 }
 
-func GetAuthSession(strAuthToken string, session interface{}) error {
+func GetAuthSessionFromToken(strAuthToken string, session interface{}) error {
 	claims, err := ParseTokenClaims(strAuthToken)
 	if err != nil {
 		return log.Errorf(err.Error())
@@ -158,4 +158,9 @@ func GetAuthSession(strAuthToken string, session interface{}) error {
 		return log.Errorf(err.Error())
 	}
 	return nil
+}
+
+func GetAuthSessionFromContext(c *gin.Context, session interface{}) error {
+	strAuthToken := GetAuthToken(c)
+	return GetAuthSessionFromToken(strAuthToken, session)
 }

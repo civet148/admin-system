@@ -19,7 +19,7 @@ func TestToken(t *testing.T) {
 	}
 	log.Infof("token [%s]", strToken)
 	var session types.Session
-	err = GetAuthSession(strToken, &session)
+	err = GetAuthSessionFromToken(strToken, &session)
 	if err != nil {
 		log.Errorf(err.Error())
 		return
