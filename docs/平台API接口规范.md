@@ -243,24 +243,22 @@
 - **请求数据** 
 
 | 字段      | 类型   | 描述     | 必填 | 备注 |
-| --------- | ------ | -------- | ---- | ---- |
-| name | string | 账户名   | YES  |      |
-| alias     | string | 真实姓名 | YES   |      |
-| phone_number| string | 电话号码 | YES  |      |
-| password  | string | 密码 （前端直接用md5加密） | NO |      |
-| remark    | string | 描述     | NO   |      |
-| role_name | string | 角色名   | NO |      |
+| --------- | ------ | -------- | -- | ---- |
+| user_name | string | 账户名   | YES |      |
+| user_alias     | string | 真实姓名 | YES |      |
+| phone_number| string | 电话号码 | YES |      |
+| password  | string | 密码 （前端直接用md5加密） | YES |      |
+| remark    | string | 描述     | NO |      |
 
 **请求示例:**
 
 ```json
 {
-	"name": "lory",
-	"alias": "李彬",
-	"phone_number": 137000000,
-	"password": "123456",
-	"remark": "普通用戶",
-	"role_name": "platform-regular"
+  "user_name": "lory",
+  "user_alias": "lory.Lee",
+  "phone_number": "18682371690",
+  "password": "e10adc3949ba59abbe56e057f20f883e",
+  "remark": "普通用戶"
 }
 ```
 
@@ -298,24 +296,22 @@
 
 | 字段      | 类型   | 描述     | 必填 | 备注 |
 | --------- | ------ | -------- | ---- | ---- |
-| name | string | 账户名   | YES  |      |
-| alias     | string | 真实姓名 | NO   |      |
+| user_name | string | 账户名   | YES  |      |
+| user_alias     | string | 真实姓名 | NO   |      |
 | phone_number| string | 电话号码 | NO  |      |
 | password  | string | 密码 （前端直接用md5加密） | NO  |      |
 | remark    | string | 描述     | NO   |      |
-| role_name | string | 角色名   | NO  |      |
 
 
 **请求示例:**
 
 ```json
 {
-	"name": "lory",
-	"alias": "李彬",
-	"phone_number": "137000000",
-	"password": "123456",
-	"remark": "普通用戶",
-	"role_name": "platform-regular"
+	"user_name": "lory",
+	"user_alias": "lory.Lee",
+	"phone_number": "1370000009124",
+	"password": "2412423sfdasdfsdf",
+	"remark": "普通用戶"
 }
 ```
 
@@ -356,7 +352,7 @@
 
 ```json
 {
-	"name": "lory2"
+	"user_name": "lory2"
 }
 ```
 
@@ -405,31 +401,36 @@
 
 ```json
 {
-    "header": {
-        "code": 0,
-        "message": "CODE_OK",
-        "total": 4,
-        "count": 4
-    },
-    "data": {
-        "roles": [
-            {
-                "id": 1,
-                "name": "platform-admin",// 名称
-                "create_user": "admin",// 创建者
-                "remark": "平台超级管理员角色", // 描述信息
-                "created_time": "2021-04-13 10:38:40", // 创建时间
-            },
-            {
-                "id": 2,
-                "name": "platform-admin",// 名称
-                "create_user": "admin",// 创建者
-                "remark": "平台超级管理员角色", // 描述信息
-                "created_time": "2021-04-13 10:38:40", // 创建时间
-            }
+  "header": {
+    "code": 0,
+    "message": "",
+    "total": 1,
+    "count": 1
+  },
+  "data": {
+    "roles": [
+      {
+        "id": 1,
+        "role_name": "admin",
+        "create_user": "admin",
+        "remark": "supper administrator role",
+        "created_time": "2024-01-11 15:33:06",
+        "role": [
+          "UserAccess",
+          "UserAdd",
+          "UserEdit",
+          "UserDelete",
+          "UserEnableOrDisable",
+          "RoleAccess",
+          "RoleAdd",
+          "RoleDelete",
+          "RoleEdit",
+          "RoleAuthority",
+          "RoleEnableOrDisable"
         ]
-    }
-}
+      }
+    ]
+  }
 ```
 ## 3.8 创建系统角色
 
@@ -448,15 +449,15 @@
 
 | 字段             | 类型   | 描述         | 必填 | 备注 |
 | ---------------- | ------ | ------------ | ---- | ---- |
-| name             | string | 平台角色名称 | YES  |      |
+| role_name             | string | 平台角色名称 | YES  |      |
 | remark           | string | 备注         | NO   |      |
 
 **请求示例:**
 
 ```json
 {
-    "name":"platform-roles-manager",
-    "remark":"自定义角色（非平台固有角色）",
+    "role_name":"platform-roles-manager",
+    "remark":"自定义角色（非平台固有角色）"
 }
 ```
 
@@ -493,7 +494,7 @@
 | 字段   | 类型   | 描述         | 必填 | 备注 |
 | ------ | ------ | ------------ | ---- | ---- |
 | id     | int    | 角色ID       | YES  |      |
-| name   | string | 平台角色名称 | YES  |      |
+| role_name   | string | 平台角色名称 | YES  |      |
 | remark | string | 备注         | NO   |      |
 
 **请求示例:**
@@ -501,7 +502,7 @@
 ```json
 {
     "id":1,
-    "name":"platform-roles-manager",
+    "role_name":"platform-roles-manager",
     "remark":"自定义角色（非平台固有角色,可删除）",
 }
 ```
@@ -536,13 +537,13 @@
 
 | 字段 | 类型   | 描述         | 必填 | 备注 |
 | ---- | ------ | ------------ | ---- | ---- |
-| name | string | 平台角色名称 | YES  |      |
+| role_name | string | 平台角色名称 | YES  |      |
 
 **请求示例:**
 
 ```json
 {
-    "name":"platform-roles-manager",
+    "role_name":"platform-roles-manager",
 }
 ```
 
@@ -576,7 +577,7 @@
 
 | 字段     | 类型   | 描述         | 必填 | 备注                        |
 | -------- | ------ | ------------ | ---- | --------------------------- |
-| name     | string | 平台角色名称 | YES  |                             |
+| role_name     | string | 平台角色名称 | YES  |                             |
 | privilege |[]string|权限列表|YES||
 
 
@@ -584,7 +585,7 @@
 
 ```json
 {
-    "name":"platform-roles-manager",
+    "role_name":"platform-roles-manager",
     "privilege":["RoleAuthority","RoleEdit"]
 }
 ```

@@ -176,34 +176,6 @@ type PlatformUserQueryResp struct {
 	NameList []string `json:"name_list"`
 }
 
-type PlatformSpaceQueryReq struct {
-}
-
-type PlatformSpaceQueryResp struct {
-	DevicePath Spaces `json:"device_path"`
-}
-
-type Spaces struct {
-	SpaceId   int      `json:"space_id,omitempty"`
-	SpaceName string   `json:"space_name"`
-	Spaces    []Spaces `json:"spaces"`
-}
-
-type PlatformDeviceQueryReq struct {
-	DeviceId string `json:"device_id" db:"device_id" bson:"device_id"` //设备ID
-}
-
-type PlatformDeviceQueryResp struct {
-	Result []string `json:"result"`
-}
-
-type PlatformDeviceTypesReq struct {
-}
-
-type PlatformDeviceTypeResp struct {
-	TypeList []string `json:"type_list"`
-}
-
 type PlatformPrivilegeLevelReq struct {
 }
 
